@@ -9,3 +9,8 @@ header strong:hover .celestial-brand-icon,header strong:focus-within .celestial-
 
 /* Audio control polish only */
 #islandMusicMode{white-space:nowrap}#islandVolume{max-width:78px}#islandMusicMode:disabled,#islandVolume:disabled{opacity:.55;cursor:not-allowed}@media(max-width:600px){#islandMusicMode{font-size:11px}#islandVolume{width:55px!important}}
+
+/* Exact Celestial Archive PNG branding, constrained in every context. */
+img[src$="/Favicon.png"],img[src="assets/Favicon.png"]{width:14px!important;height:14px!important;max-width:14px!important;max-height:14px!important;object-fit:contain!important;vertical-align:middle!important;flex:none!important}
+img.celestial-brand-icon{width:25px!important;height:25px!important;max-width:25px!important;max-height:25px!important}
+#islandMusicMode{white-space:nowrap}#islandVolume{max-width:90px}
