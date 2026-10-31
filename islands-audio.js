@@ -3,7 +3,7 @@
 const button=document.getElementById('soundBtn');if(!button)return;
 let ctx=null,master=null,musicBus=null,fxBus=null,enabled=false,sequence=null,step=0,lastHover=0,lastMove=0;
 const AudioContextClass=window.AudioContext||window.webkitAudioContext;
-function init(){if(!AudioContextClass)return false;if(!ctx){ctx=new AudioContextClass();master=ctx.createGain();master.gain.value=.55;master.connect(ctx.destination);musicBus=ctx.createGain();musicBus.gain.value=.20;musicBus.connect(master);fxBus=ctx.createGain();fxBus.gain.value=.50;fxBus.connect(master)}if(ctx.state==='suspended')ctx.resume().catch(()=>{});return true}
+function init(){if(!AudioContextClass)return false;if(!ctx){ctx=new AudioContextClass();master=ctx.createGain();master.gain.value=.55;master.connect(ctx.destination);musicBus=ctx.createGain();musicBus.gain.value=.20;musicBus.connect(master);fxBus=ctx.createGain();fxBus.gain.value=.50;fxBus.connect(master)}return true}
 function tone(freq,duration=.10,type='sine',vol=.09,delay=0,bus=fxBus){if(!enabled||!ctx)return;const start=ctx.currentTime+delay;let osc=ctx.createOscillator(),gain=ctx.createGain();osc.type=type;osc.frequency.setValueAtTime(Math.max(30,freq),start);gain.gain.setValueAtTime(.0001,start);gain.gain.exponentialRampToValueAtTime(Math.max(.0002,vol),start+.012);gain.gain.exponentialRampToValueAtTime(.0001,start+duration);osc.connect(gain);gain.connect(bus||fxBus);osc.start(start);osc.stop(start+duration+.03)}
 function effect(name){if(!enabled||document.hidden)return;switch(name){case'hover':tone(740,.045,'sine',.028);break;case'click':tone(480,.07,'triangle',.075);tone(720,.09,'sine',.055,.055);break;case'open':tone(330,.10,'triangle',.07);tone(550,.14,'sine',.065,.07);break;case'close':tone(520,.08,'sine',.05);tone(350,.09,'triangle',.045,.05);break;case'success':[523,659,784,1047].forEach((f,i)=>tone(f,.21,'triangle',.085,i*.095));break;case'error':tone(260,.13,'sawtooth',.055);tone(190,.17,'triangle',.06,.11);break;case'collect':tone(880,.06,'square',.035);tone(1320,.11,'sine',.05,.055);break;case'move':tone(145,.035,'triangle',.013);break;case'gift':tone(440,.11,'triangle',.06);tone(660,.14,'sine',.07,.08);tone(990,.22,'sine',.07,.16);break;default:tone(600,.09,'triangle',.05)}}
 const notes=[261.63,329.63,392,523.25,440,392,329.63,293.66,246.94,329.63,392,493.88,440,349.23,329.63,293.66];
@@ -27,22 +27,45 @@ function richTone(f,d=.12,type='triangle',v=.08,delay=0,bus=fxBus){if(!enabled||
 function drum(which,delay=0){if(!enabled||!ctx||document.hidden)return;const st=ctx.currentTime+delay;const o=ctx.createOscillator(),g=ctx.createGain();o.type=which==='kick'?'sine':'triangle';o.frequency.setValueAtTime(which==='kick'?145:which==='snare'?260:720,st);o.frequency.exponentialRampToValueAtTime(which==='kick'?42:which==='snare'?95:370,st+.085);g.gain.setValueAtTime(which==='kick'?.11:.025,st);g.gain.exponentialRampToValueAtTime(.0001,st+(which==='kick'?.18:.07));o.connect(g);g.connect(musicBus);o.start(st);o.stop(st+.2)}
 function playStep(){if(!enabled||document.hidden||!ctx)return;const m=modes[mode],i=drumStep++,root=mode===1?110:mode===2?196:mode===3?174.61:146.83;const semi=m.pattern[i%16];const hz=root*Math.pow(2,semi/12);richTone(hz,.14,m.lead,mode===1?.028:.04,0,musicBus);if(i%2===0)richTone(root/2*Math.pow(2,m.pattern[Math.floor(i/4)*4%16]/12),.24,m.bass,.055,0,musicBus);if(mode!==3){drum(i%4===0?'kick':i%4===2?'snare':'hat');if(mode===1)drum('hat',.08)}else if(i%4===0)richTone(hz/2,.65,'sine',.035,0,musicBus)}
 function startRichMusic(){stopMusic();if(!enabled||document.hidden)return;drumStep=0;playStep();sequence=setInterval(playStep,60000/modes[mode].bpm/2)}
-function refreshUI(){button.textContent='♪ SOUND: '+(enabled?'ON':'OFF');button.setAttribute('aria-pressed',String(enabled));button.setAttribute('aria-label','Sound is '+(enabled?'on':'off'));modeBtn.textContent='♫ '+modes[mode].name;modeBtn.disabled=!enabled;volInput.disabled=!enabled;volInput.setAttribute('aria-label','Audio volume '+Math.round(volume*100)+' percent')}
+function refreshUI(){button.title=enabled?'Click to turn all sound OFF':'Click to turn music and effects ON';button.textContent='♪ SOUND: '+(enabled?'ON':'OFF');button.setAttribute('aria-pressed',String(enabled));button.setAttribute('aria-label','Sound is '+(enabled?'on':'off'));modeBtn.textContent='♫ '+modes[mode].name;modeBtn.disabled=!enabled;volInput.disabled=!enabled;volInput.setAttribute('aria-label','Audio volume '+Math.round(volume*100)+' percent')}
 const modeBtn=document.createElement('button');modeBtn.id='islandMusicMode';modeBtn.type='button';modeBtn.title='Switch soundtrack: Island Groove, Hardcore, Chiptune, Ambient';modeBtn.textContent='♫ ISLAND GROOVE';button.after(modeBtn);
 const volInput=document.createElement('input');volInput.type='range';volInput.id='islandVolume';volInput.min='0';volInput.max='100';volInput.value='65';volInput.title='Music and sound volume';volInput.style.cssText='width:78px;vertical-align:middle;accent-color:#bd8fff;cursor:pointer';modeBtn.after(volInput);
 modeBtn.addEventListener('click',()=>{if(!enabled)return;mode=(mode+1)%modes.length;richTone(523,.10,'triangle',.09);richTone(784,.14,'sine',.08,.09);startRichMusic();refreshUI()});
 volInput.addEventListener('input',()=>{volume=Number(volInput.value)/100;if(master&&ctx){master.gain.cancelScheduledValues(ctx.currentTime);master.gain.setTargetAtTime(volume*.7,ctx.currentTime,.015)}refreshUI()});
-// Intercept legacy audio toggle at capture phase; the label always describes the CURRENT state.
-button.addEventListener('click',e=>{e.stopImmediatePropagation();const next=!enabled;if(next){enabled=true;if(!init()){enabled=false}else{master.gain.cancelScheduledValues(ctx.currentTime);master.gain.setTargetAtTime(volume*.7,ctx.currentTime,.025);startRichMusic();richTone(523,.09);richTone(784,.13,'triangle',.07,.08)}}else{enabled=false;stopMusic();if(master&&ctx){master.gain.cancelScheduledValues(ctx.currentTime);master.gain.setTargetAtTime(0,ctx.currentTime,.012)}}refreshUI()},true);
-// Prevent the old capture listener from running its inverted label logic by making this listener the sole owner.
-// The original listener was registered earlier; its behavior is superseded by this authoritative UI update.
-button.addEventListener('click',()=>{refreshUI()},false);
+// Remove the game's legacy onclick handler: two independent toggles caused reversed states.
+button.onclick=null;
+let transition=Promise.resolve();
+async function applySound(on){
+  enabled=Boolean(on);
+  if(!enabled){
+    stopMusic();
+    if(ctx&&master){master.gain.cancelScheduledValues(ctx.currentTime);master.gain.setValueAtTime(0,ctx.currentTime)}
+    refreshUI();return;
+  }
+  try{
+    if(!init())throw new Error('Web Audio is unavailable');
+    await ctx.resume();
+    if(!enabled)return;
+    if(ctx.state!=='running')throw new Error('Audio context could not start');
+    master.gain.cancelScheduledValues(ctx.currentTime);
+    master.gain.setValueAtTime(volume*.7,ctx.currentTime);
+    startRichMusic();
+    richTone(523,.12,'triangle',.10);
+    richTone(784,.16,'sine',.09,.10);
+  }catch(err){
+    console.warn('Funky Career Islands audio:',err);
+    enabled=false;stopMusic();
+    button.title='Audio unavailable: '+err.message;
+  }
+  refreshUI();
+}
+button.addEventListener('click',()=>{transition=transition.then(()=>applySound(!enabled))});
 // The game canvas is a dynamic interaction surface; use modest, throttled feedback.
 const canvas=document.getElementById('game');
 if(canvas){canvas.addEventListener('pointerdown',()=>{if(enabled){richTone(380,.07,'triangle',.055);richTone(570,.09,'sine',.04,.04)}});canvas.addEventListener('pointermove',e=>{if(!enabled||e.buttons)return;const now=performance.now();if(now-lastIdle>1200){lastIdle=now;richTone(830,.025,'sine',.012)}})}
 document.addEventListener('pointerdown',e=>{if(!enabled||e.target===button||e.target===modeBtn||e.target===volInput)return;const el=e.target.closest?.('button,a,[role="button"]');if(el){richTone(390,.045,'triangle',.055);richTone(590,.075,'sine',.04,.045)}},true);
 document.addEventListener('keydown',e=>{if(!enabled||document.hidden)return;const k=e.key.toLowerCase();if(['arrowup','arrowdown','arrowleft','arrowright','w','a','s','d'].includes(k)){const now=performance.now();if(now-lastFoot>260){lastFoot=now;richTone(115+(drumStep%3)*18,.032,'triangle',.024)}}else if(k===' '){richTone(460,.08,'square',.035);richTone(690,.11,'triangle',.04,.07)}else if(k==='e'){richTone(420,.08,'sine',.05);richTone(630,.11,'triangle',.045,.07)}},true);
-document.addEventListener('visibilitychange',()=>{if(document.hidden)stopMusic();else if(enabled)startRichMusic()});
+document.addEventListener('visibilitychange',()=>{if(document.hidden){stopMusic();if(ctx&&ctx.state==='running')ctx.suspend().catch(()=>{});}else if(enabled&&ctx){ctx.resume().then(()=>{if(enabled&&ctx.state==='running')startRichMusic()}).catch(console.warn)}});
 refreshUI();
 
 })();
