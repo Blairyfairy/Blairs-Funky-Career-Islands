@@ -14,3 +14,19 @@ header strong:hover .celestial-brand-icon,header strong:focus-within .celestial-
 img[src$="/Favicon.png"],img[src="assets/Favicon.png"]{width:14px!important;height:14px!important;max-width:14px!important;max-height:14px!important;object-fit:contain!important;vertical-align:middle!important;flex:none!important}
 img.celestial-brand-icon{width:25px!important;height:25px!important;max-width:25px!important;max-height:25px!important}
 #islandMusicMode{white-space:nowrap}#islandVolume{max-width:90px}
+
+
+/* Exact Celestial Archive header-logo hover parity; supersedes previous Funky flash only. */
+/* Celestial Archive exact logo-only hover: one 920ms tilt, no continuous spinning. */
+.celestial-brand-icon{display:inline-block;width:25px;height:25px;object-fit:contain;vertical-align:middle;transform-origin:50% 50%;backface-visibility:hidden;filter:drop-shadow(0 0 5px rgba(158,130,156,.35));transition:transform 260ms cubic-bezier(.2,.75,.25,1),filter 260ms ease;}
+header>div:first-child:hover .celestial-brand-icon,header>div:first-child:focus-within .celestial-brand-icon{filter:brightness(1.08) saturate(1.12) drop-shadow(0 0 2px rgba(255,255,255,.98)) drop-shadow(0 0 5px rgba(247,225,255,.95)) drop-shadow(0 0 10px rgba(205,160,218,.9)) drop-shadow(0 0 16px rgba(155,113,190,.62));animation:archiveCardExactGemTilt 920ms cubic-bezier(.22,.7,.25,1) both;}
+@keyframes archiveCardExactGemTilt{
+0%{transform:perspective(520px) rotateX(0deg) rotateY(0deg) rotateZ(0deg) translateY(0) scale(1)}
+18%{transform:perspective(520px) rotateX(5deg) rotateY(-8deg) rotateZ(-1.1deg) translateY(-1px) scale(1.035)}
+36%{transform:perspective(520px) rotateX(-3deg) rotateY(6deg) rotateZ(1deg) translateY(0) scale(1.04)}
+53%{transform:perspective(520px) rotateX(2deg) rotateY(-4deg) rotateZ(-.65deg) translateY(-.5px) scale(1.04)}
+70%{transform:perspective(520px) rotateX(-1deg) rotateY(2.5deg) rotateZ(.35deg) translateY(0) scale(1.035)}
+86%{transform:perspective(520px) rotateX(.5deg) rotateY(-1deg) rotateZ(-.15deg) translateY(0) scale(1.03)}
+100%{transform:perspective(520px) rotateX(0deg) rotateY(0deg) rotateZ(0deg) translateY(0) scale(1.03)}
+}
+@media(prefers-reduced-motion:reduce){header>div:first-child:hover .celestial-brand-icon,header>div:first-child:focus-within .celestial-brand-icon{animation:none;transform:none;}}
